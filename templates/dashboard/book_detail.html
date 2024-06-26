@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex">
+    <div>
+        {% include 'sidebar.html' %}
+    </div>
+    <section class="text-gray-600 body-font overflow-hidden w-full">
+
+      <div class="container py-5 mx-auto">
+        <div class="lg:w-4/5 mx-auto flex flex-wrap">
+          <div class=" w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0">
+            <h2 class="text-sm title-font text-gray-500 tracking-widest">{{book.user}}</h2>
+            <h1 class="text-gray-900 text-3xl title-font font-medium mb-1">{{book.title}}</h1>
+            <div class="flex mb-4">
+              <img class="object-cover object-center rounded" alt="hero" src="{{book.cover_image.url}}">
+            </div>
+            <div class="container w-full mx-auto px-4">
+              {% for section_title, section_content in book.content.items %}                  
+                  {% for chapter_title, chapter_content in section_content.chapters.items %}
+                      <h2 class="text-gray-900 text-2xl font-medium mb-4">{{ chapter_title }}</h2>
+                      
+                      {% for subchapter_title, subchapter_content in chapter_content.items %}
+                          <div class="mb-4">
+                            
+                              <button class="subchapter-toggle w-full text-left bg-green-100 hover:bg-green-200 transition-colors duration-200 p-3 rounded-lg shadow-md flex justify-between items-center">
+                                  <h3 class="text-green-600 text-xl font-medium">{{ subchapter_title }}</h3>
+                                  <svg class="w-5 h-5 text-green-600 arrow transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                  </svg>
+                              </button>
+                              
+                              <div class="subchapter-content hidden mt-2 ml-4 p-4 bg-gray-50 rounded-lg">
+                                
+                                <p  class="subchapterContent text-gray-700">{{ subchapter_content }}</p>
+                                
+                                <form  method="POST"  class='regenerateForm' action="{% url 'update-subchapter' pk=book.pk %}">
+                                  {% csrf_token %}
+                                  
+                                  <input hidden type="text" name="subchapter_title" value="{{ subchapter_title }}" id="subchapter_title">
+                                  <input hidden type="text" name="chapter_title" value="{{ chapter_title }}" id="chapter_title">
+                                  <input hidden type="text" name="book_title" value="{{ section_title }}" id="book_title">
+                                  <button type='submit' class="mt-5 flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+                                    <svg class="w-5 h-5 mx-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                                  </svg>
+                                    Wygeneruj od nowa</button>
+                                </form>
+                                <div class="detailSpinner hidden flex items-center justify-center h-full">
+                                  <img class="w-10 h-10 animate-spin" src="https://www.svgrepo.com/show/70469/loading.svg" alt="Loading icon">
+                                </div>
+                              </div>
+
+                          </div>
+                      {% endfor %}
+                  {% endfor %}
+              {% endfor %}
+          </div>
+          {% if book.pdf and not book.modified_ebook%}
+          <div class="flex mt-2">
+            <a href="{% url 'download-pdf' book.pk %}" class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 focus:outline-none hover:bg-green-400 rounded">Pobierz PDF</a>
+          </div>
+          {% else %}
+          <form method="POST" action="{% url 'generate-ebook' pk=book.pk %}">
+            {% csrf_token %}
+            <div class="flex mt-2">
+              <span class="title-font font-medium text-2xl text-gray-900"></span>
+              <button class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">Stwórz ebooka</button>
+            
+            </div>
+          </form>
+          {% endif %} 
+          
+          </div>
+        </div>
+      </div>
+    </section>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const toggleButtons = document.querySelectorAll('.subchapter-toggle');
+      
+      toggleButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const content = this.nextElementSibling;
+              content.classList.toggle('hidden');
+              
+              // Rotate arrow icon
+              const arrow = this.querySelector('.arrow');
+              arrow.classList.toggle('rotate-180');
+              
+              // Toggle button background
+              this.classList.toggle('bg-green-200');
+              this.classList.toggle('bg-green-100');
+          });
+      });
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var forms = document.getElementsByClassName('regenerateForm');
+
+    for (var i = 0; i < forms.length; i++) {
+        forms[i].addEventListener('submit', function(event) {
+            var spinner = this.parentElement.querySelector('.detailSpinner');
+            var form = this;
+            var content = this.parentElement.querySelector('.subchapterContent');
+
+            if (spinner) {
+                spinner.classList.remove('hidden');
+            }
+            
+            if (form) {
+                form.classList.add('hidden');
+            }
+            
+            if (content) {
+                content.classList.add('hidden');
+            }
+        });
+    }
+});
+  
+  </script>
+{% endblock %}
