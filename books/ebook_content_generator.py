@@ -57,10 +57,6 @@ class EbookCreator:
         content = re.sub(r'^' + re.escape(subheading) +
                          r'\n+', '', content).strip()
 
-        print(
-            f"Contents of the subheading: '{subheading}' under the chapter: '{chapter}' is \n")
-        print(content)
-
         # Read the existing JSON file
         with open("ebook_structure.json", "r") as chapters_file:
             ebook_structure = json.load(chapters_file)

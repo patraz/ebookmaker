@@ -45,23 +45,16 @@ class PDF(FPDF):
         self.pagination = True
 
     def chapter_title(self, ch_num, ch_title, link):
-        # Set the link location for the chapter title if provided
         if link:
             self.set_link(link)
-        # Set the font for the chapter title
         self.set_font('DejaVu', 'B', 16)
-        # Set the background color for the chapter title
         self.set_fill_color(245, 245, 245)
-        # Create the chapter title text
         chapter_title = f'{ch_title}: '
-        # Add the chapter title cell with the specified properties
         self.cell(0, 8, chapter_title, new_x=XPos.LMARGIN,
                   new_y=YPos.NEXT, fill=1)
-        # Add a line break after the chapter title
         self.ln()
 
     def chapter_body(self, content, chapter_subheading):
-
         # adding subheading
         self.set_font('DejaVu', 'I', 20)
         self.cell(0, 7, chapter_subheading, new_x=XPos.LMARGIN,
@@ -73,13 +66,8 @@ class PDF(FPDF):
         self.multi_cell(0, 8, content)
         # Add a line break after the chapter body
         self.ln()
-        # Add "END OF CHAPTER" text at the end of each chapter
-        # self.set_font('DejaVu', 'I', 12)
-        # self.cell(0, 5, 'END OF CHAPTER', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     def print_chapter(self, ch_num, ch_title, subheadings, link):
-        # print(subheadings)
-        # Add a new page for the chapter
         self.add_page()
         # Add the chapter title
         if link:
@@ -91,7 +79,7 @@ class PDF(FPDF):
             self.chapter_body(content, chapter_subheading)
 
 
-def create_pdf_from_dict(ebook_structure, title_image='title.png', author='Your Author Name'):
+def create_pdf_from_dict(ebook_structure, title_image='title.png'):
     # Extract title from the dictionary
     title = list(ebook_structure.keys())[0]
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -109,7 +97,6 @@ def create_pdf_from_dict(ebook_structure, title_image='title.png', author='Your 
 
     # Set the metadata for the PDF
     pdf.set_title(title)
-    # pdf.set_author(author)
 
     # Set auto page break with a margin of 15 units
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -154,8 +141,6 @@ def generate_pdf_from_book(book):
 
     # Set the metadata for the PDF
     pdf.set_title(book.title)
-    # Assuming your Book model has an author field
-    # pdf.set_author(book.author)
 
     # Set auto page break with a margin of 15 units
     pdf.set_auto_page_break(auto=True, margin=15)

@@ -82,7 +82,7 @@ class CreateEbookView(LoginRequiredMixin, generic.View):
 
 
 class BooksListView(LoginRequiredMixin, generic.ListView):
-    template_name = "book_list.html"
+    template_name = "dashboard/book_list.html"
     context_object_name = 'books'
     paginate_by = 5
 
@@ -97,26 +97,24 @@ class BookDetailView(LoginRequiredMixin, generic.DetailView):
     context_object_name = "book"
 
 
+class BookDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Book
+    success_url = reverse_lazy('book-list')
+    template_name = 'book_confirm_delete.html'
+
+
 class EditBookContentView(LoginRequiredMixin, generic.View):
     def post(self, request, pk):
-        print(request.POST)
         subheading = self.request.POST.get('subchapter_title')
         chapter_title = self.request.POST.get('chapter_title')
         ebook_title = self.request.POST.get('book_title')
         book = get_object_or_404(Book, pk=pk)
         new_content = EbookCreator().create_subchapter_content(
             ebook_title=ebook_title, chapter=chapter_title, subheading=subheading, language=book.language)
-        print(book.content[ebook_title]['chapters'][chapter_title][subheading])
         book.content[ebook_title]['chapters'][chapter_title][subheading] = new_content
         book.modified_ebook = True
         book.save()
         return redirect(reverse('book-detail', kwargs={'pk': pk}))
-
-
-class BookDeleteView(LoginRequiredMixin, generic.DeleteView):
-    model = Book
-    success_url = reverse_lazy('book-list')
-    template_name = 'book_confirm_delete.html'
 
 
 def download_pdf(request, pk):
