@@ -22,7 +22,7 @@ class BooksListViewTest(TestCase):
         self.client.login(username='testuser', password='12345')
         response = self.client.get(reverse('book-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'book_list.html')
+        self.assertTemplateUsed(response, 'dashboard/book_list.html')
         self.assertContains(response, 'Test Book')
 
 
@@ -59,13 +59,9 @@ class BookDetailViewTest(TestCase):
         self.user = User.objects.create_user(
             username='testuser', password='12345')
         self.book = Book.objects.create(title='Test Book', user=self.user)
+        self.url = reverse('book-detail', args=[self.book.pk])
 
     def test_view_requires_login(self):
-        response = self.client.get(reverse('book-detail', args=[self.book.pk]))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, f'/accounts/login/?next=/1/')
-
-    def test_view_requires_login(self):
-        response = self.client.get(reverse('book-detail', args=[self.book.pk]))
-        self.assertRedirects(
-            response, f"{resolve_url('login')}?next={reverse('book-detail', args=[self.book.pk])}")
+        response = self.client.get(self.url)
+        expected_redirect_url = f"{reverse('login')}?next={self.url}"
+        self.assertRedirects(response, expected_redirect_url)
